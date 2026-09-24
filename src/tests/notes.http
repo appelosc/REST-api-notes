@@ -1,0 +1,17 @@
+@API_URL = 'http://localhost:3002'
+@DEV_TOKEN = {{$dotenv DEV_TOKEN}}
+
+###
+POST http://localhost:3002/notes
+Content-Type: application/json
+Authorization: Bearer {{DEV_TOKEN}}
+
+{
+    "boardId": 4,
+    "note": "test note",
+    "color": "yellow",
+    "position": { "x": 100, "y": 100 }
+}
+
+###
+
