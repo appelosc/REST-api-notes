@@ -13,7 +13,10 @@ app.get('/', (req, res) => {
 })
 
 const notesRoutes = require('./routes/notes')
+const boardsRouter = require('./routes/boards')
 app.use('/notes', notesRoutes)
+app.use('/boards', boardsRouter)
+
 
 
 app.listen(PORT, () => {

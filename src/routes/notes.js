@@ -77,7 +77,10 @@ router.delete('/:id', async (req, res) => {
       author_id: Number(req.authUser.id)
     }
   })
-  res.status(200).json(deletedNote)
+  res.status(200).json({
+    message: "Note deleted successfully",
+    note: deletedNote
+  })
   } catch (err) {
         if (err.code === 'P2025') {
             return res.status(404).json({ message: 'Note not found' })
