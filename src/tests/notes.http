@@ -1,0 +1,58 @@
+@API_URL = 'http://localhost:3002'
+@DEV_TOKEN = {{$dotenv DEV_TOKEN}}
+
+###
+POST http://localhost:3002/notes
+Content-Type: application/json
+Authorization: Bearer {{DEV_TOKEN}}
+
+{
+    "boardId": 1,
+    "note": "Koka kräftor",
+    "color": "yellow",
+    "position": { "x": 100, "y": 100 }
+}
+
+###
+
+GET http://localhost:3002/notes/3
+Authorization: Bearer {{DEV_TOKEN}}
+
+###
+PATCH http://localhost:3002/notes/3
+Content-Type: application/json
+Authorization: Bearer {{DEV_TOKEN}}
+
+{
+    "note": "Koka kräftor i 30 minuter",
+    "color": "red"
+}
+
+###
+PATCH http://localhost:3002/notes/5
+Content-Type: application/json
+Authorization: Bearer {{DEV_TOKEN}}
+
+{
+    "note": "Koka kräftor i 30 minuter",
+    "color": "red"
+}
+
+###
+DELETE http://localhost:3002/notes/2
+Authorization: Bearer {{DEV_TOKEN}}
+
+###
+PUT http://localhost:3002/notes/1
+Authorization: Bearer {{DEV_TOKEN}}
+Content-Type: application/json
+
+{
+    "note": "Driftsätta projekt",
+    "color": "red",
+    "position": { "x": 200, "y": 200 }
+}
+
+###
+GET http://localhost:3002/boards
+Authorization: Bearer {{DEV_TOKEN}}

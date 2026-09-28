@@ -12,6 +12,13 @@ app.get('/', (req, res) => {
     res.json({ msg: "Docker container is running!" })
 })
 
+const notesRoutes = require('./routes/notes')
+const boardsRouter = require('./routes/boards')
+app.use('/notes', notesRoutes)
+app.use('/boards', boardsRouter)
+
+
+
 app.listen(PORT, () => {
     try {
         console.log(`Running on http://localhost:${PORT}`)
