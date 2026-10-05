@@ -7,19 +7,19 @@ Content-Type: application/json
 Authorization: Bearer {{DEV_TOKEN}}
 
 {
-    "boardId": 1,
-    "note": "Koka kräftor",
-    "color": "yellow",
+    "boardId": 2,
+    "note": "Duka bordet",
+    "color": "green",
     "position": { "x": 100, "y": 100 }
 }
 
 ###
 
-GET http://localhost:3002/notes/3
+GET http://localhost:3002/notes/2/
 Authorization: Bearer {{DEV_TOKEN}}
 
 ###
-PATCH http://localhost:3002/notes/3
+PATCH http://localhost:3002/notes/1
 Content-Type: application/json
 Authorization: Bearer {{DEV_TOKEN}}
 

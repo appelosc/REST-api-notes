@@ -9,21 +9,17 @@ router.use(authorize)
 
 router.get('/', async (req,res)=>{
     try{
-        const userId = req.authUser.id
+        const userId = req.authUser.sub
         const boards = await prisma.boards.findMany({
         where: {
             userIds: { has: String(userId) }
         }
     })
-    if(!boards){
-        return res.status(404).json({
-            message: "No boards found"
-        })
-    }
     res.status(200).json(boards)
 
     }catch(err){
         console.error(err)
+        res.status(500).json({ message: 'Internal server error' })
     }
 
 })

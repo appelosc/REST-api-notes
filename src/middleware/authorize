@@ -5,7 +5,7 @@ module.exports = (req, res, next) => {
         const authHeader = req.headers['authorization']
         const token = authHeader.split(' ')[1]
         const decoded = jwt.verify(token, process.env.JWT_SECRET)
-        console.log("Full decoded payload:", decoded);
+        
         req.authUser = decoded
         next()
     } catch (error) {
