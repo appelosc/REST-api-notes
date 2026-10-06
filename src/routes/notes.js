@@ -77,9 +77,6 @@ router.put('/:boardId/:id', access, async (req, res) => {
 router.patch('/:boardId/:id',access, async (req, res) => {
     try {
         const noteId = Number(req.params.id)
-        if (!Number.isInteger(boardId)) {
-            return res.status(400).json({ message: "Invalid board id" })
-        }
         if (!Number.isInteger(noteId)) {
             return res.status(400).json({ message: "Invalid note id" })
         }
