@@ -11,7 +11,7 @@ router.use(authorize)
 
 const noteSchema = z.object({
     note: z.string(),
-    color: z.string(),
+    color: z.enum(["yellow","blue","red","green","orange"]),
     position: z.object({ x: z.number(), y: z.number() })
 })
 
