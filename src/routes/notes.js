@@ -3,6 +3,7 @@ const router = express.Router()
 const { PrismaClient } = require('@prisma/client')
 const authorize = require('../middleware/authorize')
 const { z } = require('zod')
+const access = require('../middleware/access')
 
 const prisma = new PrismaClient()
 
@@ -42,27 +43,9 @@ router.get('/:boardId', async (req, res) => {
     }
 })
 
-router.get('/:boardId/:id', async (req, res) => {
-    const noteId = req.params.id
-    const userId = req.authUser.sub
-    const boardId = req.params.boardId
 
-    const note = await prisma.notes.findUnique({
-        where: {
-            id: Number(noteId),
-            boardId: Number(boardId),
-            author_id: Number(userId)
-        }
-    })
-    if (!note) {
-        return res.status(404).json({ message: "Note not found" })
-    }
-    res.status(200).json(note)
-})
-
-router.put('/:id', async (req, res) => {
+router.put('/:boardId/:id', access, async (req, res) => {
     try {
-        const userId = req.authUser.sub
         const noteId = Number(req.params.id)
         if (!Number.isInteger(noteId)) {
             return res.status(400).json({ message: "Invalid note id" })
@@ -73,10 +56,7 @@ router.put('/:id', async (req, res) => {
         }
 
         const updatedNote = await prisma.notes.update({
-            where: {
-                id: noteId,
-                author_id: Number(userId)
-            },
+            where: {id: noteId, boardId: req.board.id},
             data: {
                 note: result.data.note,
                 color: result.data.color,
@@ -93,35 +73,13 @@ router.put('/:id', async (req, res) => {
     }
 })
 
-router.delete('/:id', async (req, res) => {
-    try {
-        const noteId = Number(req.params.id)
-        if (!Number.isInteger(noteId)) {
-            return res.status(400).json({ message: "Invalid note id" })
-        }
-        const deletedNote = await prisma.notes.delete({
-            where: {
-                id: noteId,
-                author_id: Number(req.authUser.sub)
-            }
-        })
-        res.status(200).json({
-            message: "Note deleted successfully",
-            note: deletedNote
-        })
-    } catch (err) {
-        if (err.code === 'P2025') {
-            return res.status(404).json({ message: 'Note not found' })
-        }
-        console.error(err)
-        res.status(500).json({ message: 'Internal server error' })
-    }
-})
 
-router.patch('/:id', async (req, res) => {
+router.patch('/:boardId/:id',access, async (req, res) => {
     try {
-        const userId = req.authUser.sub
         const noteId = Number(req.params.id)
+        if (!Number.isInteger(boardId)) {
+            return res.status(400).json({ message: "Invalid board id" })
+        }
         if (!Number.isInteger(noteId)) {
             return res.status(400).json({ message: "Invalid note id" })
         }
@@ -133,9 +91,7 @@ router.patch('/:id', async (req, res) => {
 
         const updatedNote = await prisma.notes.update({
             where: {
-                id: noteId,
-                author_id: Number(userId)
-            },
+                id: noteId, boardId: req.board.id},
             data: {
                 note: result.data.note,
                 color: result.data.color,
@@ -192,6 +148,33 @@ router.post('/', async (req, res) => {
         res.status(500).json({ message: 'Internal server error' })
     }
 })
+
+router.delete('/:boardId/:id', access, async (req, res) => {
+    try {
+        const noteId = Number(req.params.id)
+        if (!Number.isInteger(noteId)) {
+            return res.status(400).json({ message: "Invalid note id" })
+        }
+        const deletedNote = await prisma.notes.delete({
+            where: {
+                id: noteId,
+                boardId: req.board.id,
+                author_id: req.authUser.sub
+            }
+        })
+        res.status(200).json({
+            message: "Note deleted successfully",
+            note: deletedNote
+        })
+    } catch (err) {
+        if (err.code === 'P2025') {
+            return res.status(404).json({ message: 'Note not found' })
+        }
+        console.error(err)
+        res.status(500).json({ message: 'Internal server error' })
+    }
+})
+
 
 
 module.exports = router
