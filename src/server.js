@@ -16,7 +16,7 @@ app.use(cors({
 
 
 app.get('/', (req, res) => {
-    res.json({ msg: "Docker container is running!" })
+    res.json({ msg: "Frotend API" })
 })
 
 const notesRoutes = require('./routes/notes')
