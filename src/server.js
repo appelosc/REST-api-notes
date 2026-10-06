@@ -1,7 +1,7 @@
 const express = require('express')
 const app = express()
 require('dotenv').config()
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 3001
 const cors = require('cors')
 
 console.log(`Node.js ${process.version}`)
@@ -16,7 +16,7 @@ app.use(cors({
 
 
 app.get('/', (req, res) => {
-    res.json({ msg: "Docker container is running!" })
+    res.json({ msg: "Frotend API" })
 })
 
 const notesRoutes = require('./routes/notes')
