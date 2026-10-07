@@ -155,8 +155,7 @@ router.delete('/:boardId/:id', access, async (req, res) => {
         const deletedNote = await prisma.notes.delete({
             where: {
                 id: noteId,
-                boardId: req.board.id,
-                author_id: req.authUser.sub
+                boardId: req.board.id
             }
         })
         res.status(200).json({
