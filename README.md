@@ -1,71 +1,77 @@
-# REST-api-notes
+# Notes Board App – REST API
 
-REST-API för en applikation där användare delar anteckningar (post-it-lappar) på gemensamma tavlor (boards).
+REST API for an application where users share notes (sticky notes) on shared boards.
 
-Byggt med Express 5, Prisma (PostgreSQL), Zod och JWT.
+Built with Express 5, Prisma (PostgreSQL), Zod and JWT.
 
-## Kom igång
+This is one of three parts of the Notes Board App:
 
-### Miljövariabler
+- [authn-authz](https://github.com/appelosc/authn-authz): authentication API that issues the JWTs
+- **REST-api-notes** (this repo): boards and notes API
+- [notes-frontend](https://github.com/appelosc/notes-frontend): React and TypeScript frontend
 
-Skapa en `.env` i projektroten:
+## Getting started
 
-| Variabel       | Beskrivning                                              |
-| -------------- | -------------------------------------------------------- |
-| `DATABASE_URL` | Anslutningssträng till PostgreSQL (används av Prisma)    |
-| `JWT_SECRET`   | Hemlighet för att verifiera JWT-tokens                   |
-| `PORT`         | Port servern lyssnar på (standard `3001`, `3000` i Docker) |
-| `MODE`         | `development` kör med nodemon, annars `npm start`        |
-| `DEV_TOKEN`    | (valfri) JWT som används av `.http`-testfilerna          |
+### Environment variables
 
-### Köra med Docker
+Create a `.env` file in the project root:
+
+| Variable       | Description                                                   |
+| -------------- | ------------------------------------------------------------- |
+| `DATABASE_URL` | PostgreSQL connection string (used by Prisma)                 |
+| `JWT_SECRET`   | Secret used to verify JWTs                                    |
+| `PORT`         | Port the server listens on (default `3001`, `3000` in Docker) |
+| `MODE`         | `development` runs with nodemon, otherwise `npm start`        |
+| `DEV_TOKEN`    | (optional) JWT used by the `.http` test files                 |
+
+### Run with Docker
 
 ```bash
 docker compose up --build
 ```
 
-API:et nås då på `http://localhost:3002`.
+The API is then available at `http://localhost:3002`.
 
-### Köra lokalt
+### Run locally
 
 ```bash
 npm install
 npx prisma generate
 npm run dev     # nodemon
-# eller
+# or
 npm start
 ```
 
-## Autentisering
+## Authentication
 
-Alla endpoints under `/boards` och `/notes` kräver en JWT i `Authorization`-headern:
+All endpoints under `/boards` and `/notes` require a JWT in the `Authorization` header:
 
 ```
 Authorization: Bearer <token>
 ```
 
-Token verifieras med `JWT_SECRET`. Användarens id läses från tokenets `sub`-claim.
+The token is verified with `JWT_SECRET`. The user's id is read from the token's `sub` claim.
 
-Ogiltig eller saknad token ger:
+An invalid or missing token returns:
 
 ```json
 // 401 Unauthorized
-{ "message": "Authorization failed", "error": "<felmeddelande>" }
+{ "message": "Authorization failed", "error": "<error message>" }
 ```
 
-## Behörighet
+## Authorization
 
-- En användare har åtkomst till en tavla om användarens id finns i tavlans `userIds`.
-- Alla med åtkomst till en tavla kan läsa, skapa, uppdatera och ta bort anteckningar på den.
+- A user has access to a board if the user's id is in the board's `userIds`.
+- Everyone with access to a board can read, create, update and delete notes on it.
 
-## Datamodeller
+## Data models
 
 ### Board
 
 ```json
 {
   "id": 1,
-  "name": "Min tavla",
+  "name": "My board",
   "userIds": ["1", "2"],
   "created_at": "2026-01-01T12:00:00.000Z",
   "updated_at": "2026-01-01T12:00:00.000Z"
@@ -79,7 +85,7 @@ Ogiltig eller saknad token ger:
   "id": 1,
   "author_id": 1,
   "boardId": 1,
-  "note": "Duka bordet",
+  "note": "Set the table",
   "color": "green",
   "position": { "x": 100, "y": 100 },
   "created_at": "2026-01-01T12:00:00.000Z",
@@ -87,27 +93,27 @@ Ogiltig eller saknad token ger:
 }
 ```
 
-`color` måste vara en av: `yellow`, `blue`, `red`, `green`, `orange`.
+`color` must be one of: `yellow`, `blue`, `red`, `green`, `orange`.
 
 ## Endpoints
 
-| Metod    | Sökväg                   | Beskrivning                                   |
-| -------- | ------------------------ | --------------------------------------------- |
-| `GET`    | `/`                      | Hälsokontroll                                 |
-| `GET`    | `/boards`                | Hämta tavlor användaren har åtkomst till      |
-| `GET`    | `/notes/:boardId`        | Hämta alla anteckningar på en tavla           |
-| `POST`   | `/notes`                 | Skapa en anteckning                           |
-| `PUT`    | `/notes/:boardId/:id`    | Ersätt en anteckning                          |
-| `PATCH`  | `/notes/:boardId/:id`    | Uppdatera delar av en anteckning              |
-| `DELETE` | `/notes/:boardId/:id`    | Ta bort en anteckning                         |
+| Method   | Path                  | Description                         |
+| -------- | --------------------- | ----------------------------------- |
+| `GET`    | `/`                   | Health check                        |
+| `GET`    | `/boards`             | Get the boards the user can access  |
+| `GET`    | `/notes/:boardId`     | Get all notes on a board            |
+| `POST`   | `/notes`              | Create a note                       |
+| `PUT`    | `/notes/:boardId/:id` | Replace a note                      |
+| `PATCH`  | `/notes/:boardId/:id` | Update parts of a note              |
+| `DELETE` | `/notes/:boardId/:id` | Delete a note                       |
 
 ---
 
 ### `GET /`
 
-Ingen autentisering krävs.
+No authentication required.
 
-**Svar `200`**
+**Response `200`**
 
 ```json
 { "msg": "Frotend API" }
@@ -117,42 +123,42 @@ Ingen autentisering krävs.
 
 ### `GET /boards`
 
-Returnerar alla tavlor där användaren finns i `userIds`.
+Returns all boards where the user is in `userIds`.
 
-**Svar `200`** – en array av [Board](#board).
+**Response `200`**: an array of [Board](#board).
 
 ---
 
 ### `GET /notes/:boardId`
 
-Returnerar alla anteckningar på tavlan.
+Returns all notes on the board.
 
-| Status | Orsak                                              |
-| ------ | -------------------------------------------------- |
-| `200`  | Array av [Note](#note)                             |
-| `400`  | `boardId` är inte ett heltal                       |
-| `404`  | Tavlan finns inte eller användaren saknar åtkomst  |
+| Status | Reason                                                |
+| ------ | ----------------------------------------------------- |
+| `200`  | Array of [Note](#note)                                |
+| `400`  | `boardId` is not an integer                           |
+| `404`  | The board does not exist or the user has no access    |
 
 ---
 
 ### `POST /notes`
 
-Skapar en anteckning. Den inloggade användaren blir författare.
+Creates a note. The logged-in user becomes the author.
 
 **Body**
 
 ```json
 {
   "boardId": 2,
-  "note": "Duka bordet",
+  "note": "Set the table",
   "color": "green",
   "position": { "x": 100, "y": 100 }
 }
 ```
 
-Alla fält är obligatoriska.
+All fields are required.
 
-**Svar `201`**
+**Response `201`**
 
 ```json
 {
@@ -161,79 +167,79 @@ Alla fält är obligatoriska.
 }
 ```
 
-| Status | Orsak                                |
-| ------ | ------------------------------------ |
-| `400`  | Valideringsfel (se [Fel](#fel))      |
-| `403`  | Användaren saknar åtkomst till tavlan |
-| `404`  | Tavlan finns inte                    |
+| Status | Reason                                  |
+| ------ | --------------------------------------- |
+| `400`  | Validation error (see [Errors](#errors)) |
+| `403`  | The user has no access to the board     |
+| `404`  | The board does not exist                |
 
 ---
 
 ### `PUT /notes/:boardId/:id`
 
-Ersätter en anteckning. `note`, `color` och `position` är obligatoriska.
+Replaces a note. `note`, `color` and `position` are required.
 
 **Body**
 
 ```json
 {
-  "note": "Koka kräftor",
+  "note": "Boil the crayfish",
   "color": "red",
   "position": { "x": 200, "y": 150 }
 }
 ```
 
-**Svar `200`** – den uppdaterade [Note](#note).
+**Response `200`**: the updated [Note](#note).
 
-| Status | Orsak                                                 |
-| ------ | ----------------------------------------------------- |
-| `400`  | Ogiltigt `id` eller valideringsfel                    |
-| `403`  | Användaren saknar åtkomst till tavlan                 |
-| `404`  | Tavlan finns inte, eller anteckningen finns inte på tavlan |
+| Status | Reason                                                           |
+| ------ | ---------------------------------------------------------------- |
+| `400`  | Invalid `id` or validation error                                 |
+| `403`  | The user has no access to the board                              |
+| `404`  | The board does not exist, or the note does not exist on the board |
 
 ---
 
 ### `PATCH /notes/:boardId/:id`
 
-Uppdaterar valda fält. Samma fält som `PUT`, men alla är valfria.
+Updates selected fields. Same fields as `PUT`, but all are optional.
 
 **Body**
 
 ```json
 {
-  "note": "Koka kräftor i 30 minuter",
+  "note": "Boil the crayfish for 30 minutes",
   "color": "red"
 }
 ```
 
-**Svar `200`** – den uppdaterade [Note](#note).
+**Response `200`**: the updated [Note](#note).
 
-Felkoder som för `PUT`.
+Error codes as for `PUT`.
 
 ---
 
 ### `DELETE /notes/:boardId/:id`
 
-Tar bort en anteckning. Alla med åtkomst till tavlan kan ta bort dess anteckningar.
+Deletes a note. Everyone with access to the board can delete its notes.
 
-**Svar `200`**
+**Response `200`**
 
 ```json
 {
   "message": "Note deleted successfully",
-  "note": { /* borttagen Note */ }
+  "note": { /* deleted Note */ }
 }
 ```
 
-| Status | Orsak                                                                 |
-| ------ | --------------------------------------------------------------------- |
-| `400`  | Ogiltigt `id`                                                         |
-| `403`  | Användaren saknar åtkomst till tavlan                                 |
-| `404`  | Tavlan finns inte eller anteckningen finns inte på tavlan             |
+| Status | Reason                                                           |
+| ------ | ---------------------------------------------------------------- |
+| `400`  | Invalid `id`                                                     |
+| `403`  | The user has no access to the board                              |
+| `404`  | The board does not exist, or the note does not exist on the board |
 
-## Fel
+## Errors
 
-Valideringsfel (`400`) returnerar Zods issues:
+Validation errors (`400`) return Zod's issues:
 
 ```json
 {
@@ -247,12 +253,12 @@ Valideringsfel (`400`) returnerar Zods issues:
 }
 ```
 
-Övriga fel returnerar `{ "message": "..." }`. Oväntade fel ger `500` med `{ "message": "Internal server error" }`.
+Other errors return `{ "message": "..." }`. Unexpected errors return `500` with `{ "message": "Internal server error" }`.
 
-## Testa
+## Testing
 
-`src/tests/*.http` innehåller exempelanrop för VS Code-tillägget REST Client. Sätt `DEV_TOKEN` i `.env`.
+`src/tests/*.http` contains example requests for the VS Code extension REST Client. Set `DEV_TOKEN` in `.env`.
 
 ## CORS
 
-Tillåtna origins: `http://localhost:5173`, `https://people.arcada.fi`, `http://people.arcada.fi`.
+Allowed origins: `http://localhost:5173`, `https://people.arcada.fi`, `http://people.arcada.fi`.
